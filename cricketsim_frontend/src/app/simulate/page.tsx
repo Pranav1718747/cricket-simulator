@@ -173,11 +173,15 @@ export default function SimulatePage() {
 
     const fetchPlayers = async () => {
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            // Normalize baseUrl: strip trailing slash if it exists
+            const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const baseUrl = envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl;
+
+            console.log(`Fetching players from: ${baseUrl}/api/players/`);
             const res = await axios.get(`${baseUrl}/api/players/`);
             setPlayers(res.data);
-        } catch (err) {
-            console.error(err);
+        } catch (err: any) {
+            console.error("API Error (fetchPlayers):", err.response?.data || err.message);
         } finally {
             setLoading(false);
         }
@@ -250,7 +254,10 @@ export default function SimulatePage() {
                 }
             }
 
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const baseUrl = envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl;
+
+            console.log("Simulating match...");
 
             const resA = await axios.post(`${baseUrl}/api/teams/`, {
                 name: teamAName,
@@ -270,9 +277,9 @@ export default function SimulatePage() {
                 dew_factor: dewFactor
             });
             setMatchResult(simRes.data);
-        } catch (err) {
-            console.error(err);
-            alert("Simulation failed.");
+        } catch (err: any) {
+            console.error("API Error (runSimulation):", err.response?.data || err.message);
+            alert("Simulation failed. Check console for details.");
         } finally {
             setSimulating(false);
         }

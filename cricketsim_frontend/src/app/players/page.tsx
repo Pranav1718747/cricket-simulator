@@ -41,12 +41,16 @@ export default function PlayersPage() {
     const fetchPlayers = async () => {
         setLoading(true);
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            // Normalize baseUrl: strip trailing slash if it exists
+            const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const baseUrl = envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl;
+
             const url = roleFilter ? `${baseUrl}/api/players/?role=${roleFilter}` : `${baseUrl}/api/players/`;
+            console.log(`Fetching players from: ${url}`);
             const res = await axios.get(url);
             setPlayers(res.data);
-        } catch (err) {
-            console.error("Failed to fetch players", err);
+        } catch (err: any) {
+            console.error("API Error (fetchPlayers):", err.response?.data || err.message);
         } finally {
             setLoading(false);
         }
