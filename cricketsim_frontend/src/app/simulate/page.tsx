@@ -160,6 +160,8 @@ export default function SimulatePage() {
     const [teamAName, setTeamAName] = useState('Team A');
     const [teamBName, setTeamBName] = useState('Team B');
     const [searchQuery, setSearchQuery] = useState('');
+    const [filterRole, setFilterRole] = useState('All');
+    const [filterStars, setFilterStars] = useState('All');
 
     const [pitchType, setPitchType] = useState('Balanced');
     const [dewFactor, setDewFactor] = useState(false);
@@ -341,52 +343,78 @@ export default function SimulatePage() {
                                 <input
                                     type="text"
                                     placeholder="Search players by name..."
-                                    className="bg-slate-800 border border-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5 outline-none placeholder-slate-500"
+                                    className="bg-slate-800 border border-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5 outline-none placeholder-slate-500 mb-2"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
+                                <div className="flex flex-wrap gap-1 mb-2">
+                                    {['All', 'Batsman', 'Bowler', 'All-rounder', 'Wicketkeeper'].map(role => (
+                                        <button
+                                            key={role}
+                                            onClick={() => setFilterRole(role)}
+                                            className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${filterRole === role ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-800 text-slate-500 border border-transparent hover:bg-slate-700'}`}
+                                        >
+                                            {role}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="flex flex-wrap gap-1 mb-2">
+                                    {['All', '5', '4', '3', '2', '1'].map(stars => (
+                                        <button
+                                            key={stars}
+                                            onClick={() => setFilterStars(stars)}
+                                            className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${filterStars === stars ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/50' : 'bg-slate-800 text-slate-500 border border-transparent hover:bg-slate-700'}`}
+                                        >
+                                            {stars === 'All' ? 'All Stars' : `${stars} ★`}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                             <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                                {players.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).map(p => {
-                                    const inA = teamA.some(x => x.id === p.id);
-                                    const inB = teamB.some(x => x.id === p.id);
-                                    const isPicked = inA || inB;
+                                {players
+                                    .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                                    .filter(p => filterRole === 'All' || p.role === filterRole || (filterRole === 'All-rounder' && p.role.includes('All-rounder')))
+                                    .filter(p => filterStars === 'All' || Math.floor(p.star_rating) === parseInt(filterStars))
+                                    .map(p => {
+                                        const inA = teamA.some(x => x.id === p.id);
+                                        const inB = teamB.some(x => x.id === p.id);
+                                        const isPicked = inA || inB;
 
-                                    return (
-                                        <div key={p.id} className={`p-3 rounded-xl border transition-all ${isPicked ? 'bg-slate-950 border-slate-900 opacity-50' : 'bg-slate-800 border-slate-700 hover:border-slate-500 hover:bg-slate-800/80'}`}>
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <div className="font-bold text-sm text-slate-200">{p.name}</div>
-                                                    <div className="text-xs text-yellow-500 mb-0.5">{'★'.repeat(Math.floor(p.star_rating || 0))}{p.star_rating % 1 > 0 ? '½' : ''}</div>
-                                                    <div className="text-[10px] text-slate-500 flex gap-2">
-                                                        <span className="text-cyan-500/80">{p.role}</span>
-                                                        <span>{p.tactical_role}</span>
-                                                        {p.bowling_style !== 'None' && <span>• {p.bowling_style}</span>}
+                                        return (
+                                            <div key={p.id} className={`p-3 rounded-xl border transition-all ${isPicked ? 'bg-slate-950 border-slate-900 opacity-50' : 'bg-slate-800 border-slate-700 hover:border-slate-500 hover:bg-slate-800/80'}`}>
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <div className="font-bold text-sm text-slate-200">{p.name}</div>
+                                                        <div className="text-xs text-yellow-500 mb-0.5">{'★'.repeat(Math.floor(p.star_rating || 0))}{p.star_rating % 1 > 0 ? '½' : ''}</div>
+                                                        <div className="text-[10px] text-slate-500 flex gap-2">
+                                                            <span className="text-cyan-500/80">{p.role}</span>
+                                                            <span>{p.tactical_role}</span>
+                                                            {p.bowling_style !== 'None' && <span>• {p.bowling_style}</span>}
+                                                        </div>
+                                                    </div>
+                                                    {!isPicked && (
+                                                        <div className="flex gap-1">
+                                                            <button onClick={() => handleSelect(p, 'A')} className="px-2 py-1 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded text-xs font-bold transition-colors">A</button>
+                                                            <button onClick={() => handleSelect(p, 'B')} className="px-2 py-1 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 rounded text-xs font-bold transition-colors">B</button>
+                                                        </div>
+                                                    )}
+                                                    {isPicked && (
+                                                        <div className="text-xs font-bold text-slate-600 px-2">{inA ? 'Team A' : 'Team B'}</div>
+                                                    )}
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-700/50">
+                                                    <div className="text-[10px]">
+                                                        <div className="flex justify-between"><span className="text-slate-500">Power:</span><span className={p.batting_power >= 80 ? 'text-emerald-400 font-bold' : 'text-slate-300'}>{p.batting_power}</span></div>
+                                                        <div className="flex justify-between"><span className="text-slate-500">Consist:</span><span className={p.batting_consistency >= 80 ? 'text-emerald-400 font-bold' : 'text-slate-300'}>{p.batting_consistency}</span></div>
+                                                    </div>
+                                                    <div className="text-[10px] border-l border-slate-700/50 pl-2">
+                                                        <div className="flex justify-between"><span className="text-slate-500">Powerply:</span><span className={p.powerplay_skill >= 80 ? 'text-cyan-400 font-bold' : 'text-slate-300'}>{p.powerplay_skill}</span></div>
+                                                        <div className="flex justify-between"><span className="text-slate-500">DeathBrl:</span><span className={p.death_bowling_skill >= 80 ? 'text-cyan-400 font-bold' : 'text-slate-300'}>{p.death_bowling_skill}</span></div>
                                                     </div>
                                                 </div>
-                                                {!isPicked && (
-                                                    <div className="flex gap-1">
-                                                        <button onClick={() => handleSelect(p, 'A')} className="px-2 py-1 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded text-xs font-bold transition-colors">A</button>
-                                                        <button onClick={() => handleSelect(p, 'B')} className="px-2 py-1 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 rounded text-xs font-bold transition-colors">B</button>
-                                                    </div>
-                                                )}
-                                                {isPicked && (
-                                                    <div className="text-xs font-bold text-slate-600 px-2">{inA ? 'Team A' : 'Team B'}</div>
-                                                )}
                                             </div>
-                                            <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-700/50">
-                                                <div className="text-[10px]">
-                                                    <div className="flex justify-between"><span className="text-slate-500">Power:</span><span className={p.batting_power >= 80 ? 'text-emerald-400 font-bold' : 'text-slate-300'}>{p.batting_power}</span></div>
-                                                    <div className="flex justify-between"><span className="text-slate-500">Consist:</span><span className={p.batting_consistency >= 80 ? 'text-emerald-400 font-bold' : 'text-slate-300'}>{p.batting_consistency}</span></div>
-                                                </div>
-                                                <div className="text-[10px] border-l border-slate-700/50 pl-2">
-                                                    <div className="flex justify-between"><span className="text-slate-500">Powerply:</span><span className={p.powerplay_skill >= 80 ? 'text-cyan-400 font-bold' : 'text-slate-300'}>{p.powerplay_skill}</span></div>
-                                                    <div className="flex justify-between"><span className="text-slate-500">DeathBrl:</span><span className={p.death_bowling_skill >= 80 ? 'text-cyan-400 font-bold' : 'text-slate-300'}>{p.death_bowling_skill}</span></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
                             </div>
                         </div>
 
