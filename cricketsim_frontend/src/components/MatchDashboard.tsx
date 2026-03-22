@@ -379,6 +379,63 @@ export default function MatchDashboard({ matchData }: MatchDashboardProps) {
                 {renderScorecard(secondBattingTeamName, liveSc2, isI2 && !isFinished)}
             </div>
 
+            {/* ── BOWLING STRATEGY TIMELINE ── */}
+            {!isFinished && (
+                <div className="bg-slate-950 rounded-3xl p-6 border border-slate-900/50 shadow-2xl">
+                    <div className="flex justify-between items-center mb-6">
+                        <div className="space-y-1">
+                            <h3 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-2">
+                                <span className="w-1.5 h-6 bg-emerald-500 rounded-full"></span>
+                                Bowling Strategy
+                            </h3>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-3">Pre-planned Performance-driven sequence</p>
+                        </div>
+                        <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-900/50 px-4 py-2 rounded-full border border-slate-800">
+                            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> PP</div>
+                            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-cyan-500"></div> Mid</div>
+                            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500"></div> Death</div>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 overflow-x-auto pb-6 pt-2 px-1 custom-scrollbar">
+                        {(isI2 ? (matchData.bowling_strategy?.team_a) : (matchData.bowling_strategy?.team_b))?.map((bowlerName: string, i: number) => {
+                            const currentOverNum = Math.floor((isI2 ? currentI2Balls.length : currentI1Balls.length) / 6);
+                            const isCurrent = i === currentOverNum;
+                            const isPast = i < currentOverNum;
+                            const phase = i < 6 ? 'PP' : i < 15 ? 'MID' : 'DTH';
+
+                            // Color mapping
+                            const colors = {
+                                'PP': 'emerald',
+                                'MID': 'cyan',
+                                'DTH': 'red'
+                            };
+                            const c = colors[phase as keyof typeof colors];
+
+                            return (
+                                <div key={i} className={`flex-shrink-0 w-28 p-3 rounded-2xl border transition-all duration-500 ${isCurrent ? `bg-${c}-500/10 border-${c}-500 shadow-[0_0_20px_rgba(var(--tw-shadow-color),0.2)] shadow-${c}-500/20 scale-105 -translate-y-1 z-10` :
+                                        isPast ? 'bg-slate-900/30 border-slate-800/50 opacity-30 scale-95' :
+                                            'bg-slate-900/80 border-slate-800 hover:border-slate-700'
+                                    }`}>
+                                    <div className={`text-[9px] font-black uppercase mb-1 tracking-tighter ${isCurrent ? `text-${c}-400` : 'text-slate-500'}`}>
+                                        Over {i + 1}
+                                    </div>
+                                    <div className={`text-[11px] font-black truncate leading-tight ${isCurrent ? 'text-white' : 'text-slate-400'}`}>
+                                        {bowlerName.split(' ').pop()}
+                                    </div>
+                                    <div className={`text-[8px] font-bold mt-1 ${isCurrent ? `text-${c}-500/80` : 'text-slate-600'}`}>
+                                        {phase}
+                                    </div>
+                                    <div className={`mt-2 h-1 w-full rounded-full overflow-hidden bg-slate-800`}>
+                                        <div className={`h-full rounded-full transition-all duration-1000 ${isCurrent || isPast ? `bg-${c}-500` : `bg-${c}-500/20`} ${isCurrent ? 'w-full' : isPast ? 'w-full' : 'w-0'}`}></div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
             <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
                 <h3 className="text-xl font-bold text-slate-100 mb-6 flex justify-between">
                     Live Commentary

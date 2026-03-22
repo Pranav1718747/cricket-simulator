@@ -157,7 +157,7 @@ def sort_batting_order(players):
     power_hit = [p for p in players if p.tactical_role == 'Power Hitter']
     finishers = [p for p in players if p.tactical_role == 'Finisher']
     keepers   = [p for p in players if p.role == 'Wicketkeeper'][:1]
-    allround  = [p for p in players if p.role == 'All-rounder' and p not in openers and p not in finishers]
+    allround  = [p for p in players if p.role in ['All-rounder', 'Batting All-rounder', 'Bowling All-rounder'] and p not in openers and p not in finishers]
     bowlers   = [p for p in players if p.role == 'Bowler']
 
     ordered = []
@@ -196,7 +196,7 @@ def _auto_select_xi(player_pool, exclude):
     bowlers = [p for p in pool if p.role == 'Bowler' and p not in selected]
     selected += bowlers[:4]
 
-    ars = [p for p in pool if p.role == 'All-rounder' and p not in selected]
+    ars = [p for p in pool if p.role in ['All-rounder', 'Batting All-rounder', 'Bowling All-rounder'] and p not in selected]
     selected += ars[:2]
 
     rest = [p for p in pool if p not in selected]
@@ -213,58 +213,103 @@ def get_phase(over):
     if over < 15:  return 'middle'
     return 'death'
 
+def generate_bowling_strategy(bowling_pool):
+    """
+    Dynamically generates a 20-over bowling plan based on player skills and match phases.
+    Uses weighted randomness to choose bowlers, respecting the 4-over limit and phase constraints.
+    """
+    xi = list(bowling_pool)
+    overs_bowled = {p.name: 0 for p in xi}
+    plan = []
+    prev_bowler_name = None
 
-def bowler_allowed_in_phase(bowler, phase, pp_non_pacer_overs):
-    """Basic eligibility rules for match phases."""
-    is_pacer = 'pacer' in (bowler.bowling_style or '').lower() or 'specialist' in (bowler.bowling_style or '').lower()
-    if 'spinner' in (bowler.bowling_style or '').lower(): is_pacer = False
+    # Categorize for the roles_map (representative only)
+    pacers = sorted([p for p in xi if not p.is_spinner and 'spinner' not in (p.bowling_style or '').lower()], 
+                    key=lambda p: (p.powerplay_skill + p.death_bowling_skill), reverse=True)
+    spinners = sorted([p for p in xi if p.is_spinner or 'spinner' in (p.bowling_style or '').lower()], 
+                      key=lambda p: p.middle_overs_skill, reverse=True)
+    ars = sorted([p for p in xi if p.role in ['All-rounder', 'Batting All-rounder', 'Bowling All-rounder']], key=lambda p: p.star_rating, reverse=True)
 
-    if phase == 'powerplay':
-        # Pacers only. Max 1 over of spin/all-rounder.
-        if not is_pacer:
-            return pp_non_pacer_overs < 1
-        return True
-    elif phase == 'middle':
-        return True
-    elif phase == 'death':
-        # ONLY PACERS.
-        return is_pacer
-
-    return True
-
-
-def score_bowler_for_phase(bowler, phase, over, recent_bowler_names=None, overs_bowled_by_him=0):
-    """Higher score = more preferred for this phase. Includes variety penalty and specialist-preservation."""
-    style = (bowler.bowling_style or '').lower()
-    is_ar = bowler.role == 'All-rounder'
-    score = bowler.star_rating * 10
-
-    # Phase specific skill bonuses
-    if phase == 'powerplay':
-        if 'swing' in style:    score += 50
-        if 'death' in style:    
-            score -= 50  # Save for end
-            if overs_bowled_by_him >= 1: score -= 100 # Definitely save
-        if 'spin' in style or is_ar: score -= 30
+    for over_idx in range(20):
+        phase = get_phase(over_idx)
         
-    elif phase == 'middle':
-        if 'spinner' in style:   score += 50 # Spinners dominate middle
-        if is_ar:                score += 40 # ARs used in middle
-        if 'death' in style and overs_bowled_by_him >= 2: 
-            score -= 80 # Strictly save him for the death phase
+        candidates = []
+        weights = []
+        
+        for p in xi:
+            # Constraints
+            limit = 2 if p.role == 'Batting All-rounder' else 4
+            if overs_bowled[p.name] >= limit: continue
+            if p.name == prev_bowler_name: continue
             
-    elif phase == 'death':
-        if 'death' in style:    score += 150
-        if not is_ar:           score += 50
-        if 'spinner' in style:  score -= 999 # Hard NO per latest request
-        if is_ar:               score -= 100 # Prefer pure pacers
+            # Base Skill for phase
+            if phase == 'powerplay':
+                skill = p.powerplay_skill
+            elif phase == 'middle':
+                skill = p.middle_overs_skill
+            else:
+                skill = p.death_bowling_skill
+            
+            # Weighting logic: Sharp exponent to favor specialists heavily
+            remaining = limit - overs_bowled[p.name]
+            weight = (skill ** 3) * (remaining ** 1.2)
+            
+            is_pacer = not p.is_spinner and 'spinner' not in (p.bowling_style or '').lower()
+            is_spinner = p.is_spinner or 'spinner' in (p.bowling_style or '').lower()
+            
+            # Phase strictly constraints
+            if phase == 'powerplay':
+                if not is_pacer: weight *= 0.001 # Part-timers/spinners very unlikely in PP
+            elif phase == 'death':
+                if not is_pacer: weight = 0      # NO non-pacers in Death
+                else: weight *= 5.0              # Massive boost for pacers in Death
+            elif phase == 'middle':
+                if is_spinner:
+                    weight *= 2.0 # Favor spinners in Middle
+                elif not is_pacer and p.role not in ['All-rounder', 'Batting All-rounder', 'Bowling All-rounder']:
+                    weight *= 0.1 # Part-time batsmen unlikely in Middle
+            
+            candidates.append(p)
+            weights.append(max(0, weight))
 
-    # variety penalty
-    if recent_bowler_names:
-        if len(recent_bowler_names) >= 2 and recent_bowler_names[-2] == bowler.name:
-            score -= 40 # Don't bring back too quickly
+        if not candidates or sum(weights) == 0:
+            # Emergency fallback: 
+            # 1. Try to find ANYONE who hasn't reached their limit yet
+            absolute_fallbacks = [p for p in xi if overs_bowled[p.name] < (2 if p.role == 'Batting All-rounder' else 4)]
             
-    return score
+            if absolute_fallbacks:
+                # Prioritize those who didn't bowl the previous over
+                preferred = [p for p in absolute_fallbacks if p.name != prev_bowler_name]
+                selected_bowler = random.choice(preferred if preferred else absolute_fallbacks)
+            else:
+                # 2. Complete overflow: No one has valid overs left. 
+                # Pick someone who didn't bowl last, prioritizing pure bowlers.
+                fallbacks = [p for p in xi if p.name != prev_bowler_name]
+                priority_fallbacks = [p for p in fallbacks if p.role == 'Bowler']
+                if not priority_fallbacks:
+                    priority_fallbacks = [p for p in fallbacks if p.role != 'Batting All-rounder']
+                
+                if priority_fallbacks:
+                    selected_bowler = random.choice(priority_fallbacks)
+                elif fallbacks:
+                    selected_bowler = random.choice(fallbacks)
+                else:
+                    selected_bowler = random.choice(xi)
+        else:
+            selected_bowler = random.choices(candidates, weights=weights, k=1)[0]
+        
+        plan.append(selected_bowler.name)
+        overs_bowled[selected_bowler.name] += 1
+        prev_bowler_name = selected_bowler.name
+
+    return plan, {
+        'p1': pacers[0].name if pacers else (xi[0].name if len(xi) > 0 else 'None'),
+        'p2': pacers[1].name if len(pacers) > 1 else (xi[1].name if len(xi) > 1 else 'None'),
+        'p3': pacers[2].name if len(pacers) > 2 else (xi[2].name if len(xi) > 2 else 'None'),
+        'sp': spinners[0].name if spinners else (xi[3].name if len(xi) > 3 else 'None'),
+        'ar1': ars[0].name if ars else (xi[4].name if len(xi) > 4 else 'None'),
+        'ar2': ars[1].name if len(ars) > 1 else (xi[5].name if len(xi) > 5 else 'None'),
+    }
 
 
 # ─────────────────────────────────────────────────────────────
@@ -302,7 +347,7 @@ def simulate_innings(batting_team, bowling_team, conditions, active_form,
 
     # Separate bowler pools
     pure_bowlers   = [p for p in raw_bowling if p.role == 'Bowler']
-    all_rounders   = [p for p in raw_bowling if p.role == 'All-rounder']
+    all_rounders   = [p for p in raw_bowling if p.role in ['All-rounder', 'Batting All-rounder', 'Bowling All-rounder']]
     bowling_pool   = pure_bowlers + all_rounders
 
     score, wickets = 0, 0
@@ -335,101 +380,70 @@ def simulate_innings(batting_team, bowling_team, conditions, active_form,
         if not available: return None
         return available[0]  # Strict order — next in selected list
 
+    # Generate the pre-planned strategy
+    bowling_plan, role_map = generate_bowling_strategy(bowling_pool)
+    
+    # Tracking for dynamic AR adjustments
+    ar_stats = { role_map['ar1']: {'runs': 0, 'overs': 0}, role_map['ar2']: {'runs': 0, 'overs': 0} }
+    ar_adjustment_made = False
+
     for over in range(overs_max):
         phase = get_phase(over)
-
+        
         # Phase aggression for batters
         if phase == 'powerplay': phase_aggression = 1.15
         elif phase == 'middle':  phase_aggression = 1.0
         else:                    phase_aggression = 1.25
 
+        # ── DYNAMIC AR ADJUSTMENT (Middle Overs Only) ────────────────
+        if phase == 'middle' and not ar_adjustment_made:
+            for ar_name in [role_map['ar1'], role_map['ar2']]:
+                if ar_name == 'None': continue
+                stats = ar_stats.get(ar_name)
+                if stats and stats['overs'] >= 1:
+                    avg_runs = stats['runs'] / stats['overs']
+                    if avg_runs >= 12: # Expensive - swap with anyone who has capacity
+                        other_ar = role_map['ar2'] if ar_name == role_map['ar1'] else role_map['ar1']
+                        
+                        # Find potential replacements from the entire pool
+                        for i in range(over + 1, 15):
+                            if bowling_plan[i] == ar_name:
+                                # Prioritize the other AR, then any bowler with room
+                                for candidate in [other_ar] + [p.name for p in bowling_pool]:
+                                    if candidate == 'None' or candidate == ar_name: continue
+                                    
+                                    cand_p = next((p for p in bowling_pool if p.name == candidate), None)
+                                    if not cand_p: continue
+                                    
+                                    limit = 2 if cand_p.role == 'Batting All-rounder' else 4
+                                    if bowling_plan.count(candidate) < limit:
+                                        bowling_plan[i] = candidate
+                                        ar_adjustment_made = True
+                                        break
+                                if ar_adjustment_made: break
+                        if ar_adjustment_made: break
+                    elif avg_runs <= 6 and stats['overs'] == 1:
+                        # Good performance - try to give them more overs by taking from others if they have room
+                        other_ar = role_map['ar2'] if ar_name == role_map['ar1'] else role_map['ar1']
+                        current_overs = bowling_plan.count(ar_name)
+                        limit = 2 if next(p for p in bowling_pool if p.name == ar_name).role == 'Batting All-rounder' else 4
+                        
+                        if current_overs < limit:
+                            for i in range(over + 1, 15):
+                                if bowling_plan[i] == other_ar:
+                                    bowling_plan[i] = ar_name
+                                    ar_adjustment_made = True
+                                    break
+                        if ar_adjustment_made: break
+
         # ── BOWLER SELECTION ─────────────────────────────────────────
-        # Rules:
-        #  - Pure bowlers: can bowl in any phase, must complete their 4-over allotment
-        #  - All-rounders: bowl ONLY in middle (6-14) and max 1 over in death (15-19)
-        #                  NOT allowed in powerplay
-
-        def is_under_quota(p):
-            return scorecard['bowlers'].get(p.name, {'overs': 0.0})['overs'] < 4.0
-
-        def get_candidates(pool, relax_phase=False):
-            last_bowler_name = recent_bowlers[-1] if recent_bowlers else None
-            
-            # PACE PRESERVATION CHECK
-            pacers = [p for p in bowling_pool if 'pacer' in (p.bowling_style or '').lower() or 'specialist' in (p.bowling_style or '').lower()]
-            # Filter out spinners from 'specialist' check
-            pacers = [p for p in pacers if 'spinner' not in (p.bowling_style or '').lower()]
-            
-            total_pacer_quota_left = sum([4.0 - scorecard['bowlers'][p.name]['overs'] for p in pacers])
-            
-            death_overs_left = 5 if over < 15 else max(0, 20 - over)
-            
-            # If we are low on pace overs, we MUST save them for death
-            # Hard preservation: if we have EXPLICITLY just enough for the death, block pacers from bowling now
-            needs_hard_preservation = total_pacer_quota_left <= death_overs_left
-
-            # Check phase restrictions strictly
-            def check_rules(p):
-                if not is_under_quota(p): return False
-                if p.name == last_bowler_name: return False
-                
-                style = (p.bowling_style or '').lower()
-                is_pacer = 'pacer' in style or 'death specialist' in style or 'swing' in style
-                if 'spinner' in style: is_pacer = False
-
-                if not relax_phase:
-                    # Powerplay Rule: Pacers primary. 1-2 Non-pacer exception if preservation needed.
-                    if phase == 'powerplay':
-                        if not is_pacer:
-                            # If we MUST save for death, we can allow more exceptions in PP
-                            limit = 2 if needs_hard_preservation else 1
-                            if pp_non_pacer_overs >= limit: return False
-                        elif needs_hard_preservation:
-                            return False # Block pacer to force the non-pacer exception
-                    
-                    # Middle Phase: If hard preservation is active, block pacers to save for death
-                    if phase == 'middle' and is_pacer and needs_hard_preservation:
-                        return False
-
-                    # Death Rule: Pacers only
-                    if phase == 'death' and not is_pacer:
-                        return False
-
-                return True
-
-            eligible = [p for p in pool if check_rules(p)]
-            if not eligible:
-                # If we have NO pacer for death but we blocked non-pacers, we have to relax
-                eligible = [p for p in pool if is_under_quota(p) and p.name != last_bowler_name]
-
-            # Strategic Scoring:
-            def strategic_score(p):
-                base = score_bowler_for_phase(p, phase, over, recent_bowlers, scorecard['bowlers'][p.name]['overs'])
-                is_pacer = 'pacer' in (p.bowling_style or '').lower() or 'specialist' in (p.bowling_style or '').lower()
-                if 'spinner' in (p.bowling_style or '').lower(): is_pacer = False
-                
-                # If we need preservation and it's NOT death, penalize pacers heavily
-                if needs_hard_preservation and phase != 'death' and is_pacer:
-                    base -= 500
-                
-                return base
-
-            return sorted(eligible, key=strategic_score, reverse=True)
-
-        candidates = get_candidates(bowling_pool)
+        bowler_name = bowling_plan[over]
+        bowler = next(p for p in bowling_pool if p.name == bowler_name)
         
-        # If middle phase, filter for spinners/ARs if possible to make them dominant
-        if phase == 'middle' and not recent_bowlers[-1:] == []:
-             pref = [c for c in candidates if 'spinner' in (c.bowling_style or '').lower() or c.role == 'All-rounder']
-             if pref: candidates = pref
-
-        # Register new bowlers in scorecard
-        for p in candidates:
-            if p.name not in scorecard['bowlers']:
-                scorecard['bowlers'][p.name] = {'overs': 0.0, 'runs': 0, 'wickets': 0}
-
-        bowler = candidates[0]  # Pick best-ranked for this phase
         recent_bowlers.append(bowler.name)
+        if bowler.name not in scorecard['bowlers']:
+            scorecard['bowlers'][bowler.name] = {'overs': 0.0, 'runs': 0, 'wickets': 0}
+        
         bowler_stats = scorecard['bowlers'][bowler.name]
 
         over_runs = 0
@@ -532,6 +546,11 @@ def simulate_innings(batting_team, bowling_team, conditions, active_form,
         striker_idx, non_striker_idx = non_striker_idx, striker_idx
         bowler_stats['overs'] += 1.0
 
+        # Update AR stats for dynamic adjustment
+        if bowler.name in ar_stats:
+            ar_stats[bowler.name]['overs'] += 1
+            ar_stats[bowler.name]['runs'] += over_runs
+
         is_pacer = 'pacer' in (bowler.bowling_style or '').lower() or 'specialist' in (bowler.bowling_style or '').lower()
         if 'spinner' in (bowler.bowling_style or '').lower(): is_pacer = False
 
@@ -625,6 +644,12 @@ def simulate_match(team_a, team_b, conditions=None, player_ids_a=None, player_id
         'scorecard': {'innings_1': sc1, 'innings_2': sc2},
         'log': {'innings_1': log1, 'innings_2': log2},
         'winner': winner,
+        'bowling_strategy': {
+            'team_a': generate_bowling_strategy(players_a)[0],
+            'team_b': generate_bowling_strategy(players_b)[0],
+            'roles_a': generate_bowling_strategy(players_a)[1],
+            'roles_b': generate_bowling_strategy(players_b)[1],
+        },
         'match_meta': {
             'team_a_strength': strength_a,
             'team_b_strength': strength_b,

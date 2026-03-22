@@ -5,6 +5,8 @@ class Player(models.Model):
         ('Batsman', 'Batsman'),
         ('Bowler', 'Bowler'),
         ('All-rounder', 'All-rounder'),
+        ('Batting All-rounder', 'Batting All-rounder'),
+        ('Bowling All-rounder', 'Bowling All-rounder'),
         ('Wicketkeeper', 'Wicketkeeper'),
     )
     
