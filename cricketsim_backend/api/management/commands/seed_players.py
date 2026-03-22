@@ -148,7 +148,7 @@ class Command(BaseCommand):
                 'Dwayne Bravo': 'Death Specialist',
                 'Jasprit Bumrah': 'Death Specialist',
                 'Jos Buttler': 'None',
-                'Kieron Pollard': 'Death Specialist',
+                'Kieron Pollard': 'None',
                 'Lasith Malinga': 'Death Specialist',
                 'MS Dhoni': 'None',
                 'Rashid Khan': 'All-Round Spinner',
@@ -159,7 +159,7 @@ class Command(BaseCommand):
                 'Suryakumar Yadav': 'None',
                 'Trent Boult': 'Swing Specialist',
                 'Virat Kohli': 'None',
-                'Yuvraj Singh': 'Swing Specialist',
+                'Yuvraj Singh': 'All-Round Spinner',
                 'Faf du Plessis': 'None',
                 'Glenn Maxwell': 'All-Round Spinner',
                 'Hardik Pandya': 'Death Specialist',
@@ -174,7 +174,7 @@ class Command(BaseCommand):
                 'Mohammed Shami': 'Swing Specialist',
                 'Nicholas Pooran': 'None',
                 'Pat Cummins': 'Swing Specialist',
-                'Ravichandran Ashwin': 'Spinner',
+                'Ravichandran Ashwin': 'All-Round Spinner',
                 'Ravindra Jadeja': 'All-Round Spinner',
                 'Rishabh Pant': 'None',
                 'Ruturaj Gaikwad': 'None',
@@ -215,7 +215,7 @@ class Command(BaseCommand):
                 'Aiden Markram': 'None',
                 'Ashutosh Sharma': 'None',
                 'Avesh Khan': 'Swing Specialist',
-                'Chris Woakes': 'Swing Specialist',
+                'Chris Woakes': 'All-Round Pacer',
                 'Deepak Chahar': 'Swing Specialist',
                 'Dewald Brevis': 'None',
                 'Glenn Phillips': 'None',
@@ -229,6 +229,7 @@ class Command(BaseCommand):
                 'Mohit Sharma': 'Death Specialist',
                 'Mukesh Kumar': 'Swing Specialist',
                 'Mustafizur Rahman': 'Death Specialist',
+                'Mujeeb Ur Rahman': 'Spinner',
                 'Nitish Rana': 'Swing Specialist',
                 'Pathum Nissanka': 'None',
                 'Phil Salt': 'None',
@@ -244,14 +245,15 @@ class Command(BaseCommand):
                 'Venkatesh Iyer': 'All-Round Pacer',
                 'Washington Sundar': 'All-Round Spinner',
                 'Wriddhiman Saha': 'None',
+                'Jacob Bethell': 'All-Round Spinner',
                 'Abdul Samad': 'None',
                 'Ajinkya Rahane': 'None',
-                'Akeal Hosein': 'Spinner',
+                'Akeal Hosein': 'All-Round Spinner',
                 'Ambati Rayudu': 'None',
                 'Ayush Badoni': 'None',
                 'Azmatullah Omarzai': 'All-Round Pacer',
                 'Ben Stokes': 'All-Round Pacer',
-                'Chris Jordan': 'Death Specialist',
+                'Chris Jordan': 'All-Round Pacer',
                 'Dasun Shanaka': 'All-Round Pacer',
                 'Deepak Hooda': 'All-Round Pacer',
                 'Dinesh Karthik': 'None',
@@ -265,14 +267,14 @@ class Command(BaseCommand):
                 'Khaleel Ahmed': 'Swing Specialist',
                 'Krunal Pandya': 'All-Round Pacer',
                 'Lalit Yadav': 'All-Round Pacer',
-                'Lungi Ngidi': 'Swing Specialist',
+                'Lungi Ngidi': 'Death Specialist',
                 'Mark Wood': 'Death Specialist',
                 'Mayank Agarwal': 'None',
                 'Michael Bracewell': 'All-Round Spinner',
                 'Mohsin Khan': 'Swing Specialist',
                 'Naveen-ul-Haq': 'Swing Specialist',
                 'Nehal Wadhera': 'None',
-                'Nitish Kumar Reddy': 'All-Round Spinner',
+                'Nitish Kumar Reddy': 'All-Round Pacer',
                 'Noor Ahmad': 'Spinner',
                 'Parthiv Patel': 'None',
                 'Prabhsimran Singh': 'None',
@@ -285,12 +287,12 @@ class Command(BaseCommand):
                 'Wanindu Hasaranga': 'All-Round Spinner',
                 'Shahrukh Khan': 'None',
                 'Harpreet Brar': 'All-Round Spinner',
-                'Abhinav Manohar': 'None',
+                'Abinav Manohar': 'None',
                 'Abishek Porel': 'None',
                 'Adam Zampa': 'Spinner',
                 'Aman Khan': 'All-Round Spinner',
                 'Angkrish Raghuvanshi': 'None',
-                'Anshul Kamboj': 'Spinner',
+                'Anshul Kamboj': 'Swing Specialist',
                 'Atharva Taide': 'None',
                 'Dhruv Jurel': 'None',
                 'Fazalhaq Farooqi': 'Swing Specialist',
@@ -306,12 +308,12 @@ class Command(BaseCommand):
                 'Shahbaz Ahmed': 'All-Round Pacer',
                 'Shardul Thakur': 'Swing Specialist',
                 'Sheldon Cottrell': 'Death Specialist',
-                'Tom Curran': 'Swing Specialist',
+                'Tom Curran': 'All-Round Pacer',
                 'Akash Madhwal': 'Spinner',
                 'Anmolpreet Singh': 'None',
                 'Anuj Rawat': 'None',
                 'Chetan Sakariya': 'Swing Specialist',
-                'Corbin Bosch': 'Swing Specialist',
+                'Corbin Bosch': 'All-Round Pacer',
                 'Jayant Yadav': 'All-Round Spinner',
                 'Karn Sharma': 'Spinner',
                 'Kartikeya Singh': 'Swing Specialist',
@@ -346,7 +348,10 @@ class Command(BaseCommand):
                 'Riley Meredith': 'Swing Specialist',
                 'Sameer Rizvi': 'None',
                 'Sarfaraz Khan': 'None',
-                'Shivam Mavi': 'Spinner'
+                'Shivam Mavi': 'Spinner',
+                'Priyansh Arya': 'None',
+                'Finn Allen': 'None',
+                'Tim Seifert': 'None'
             }
             if name in exact_map and exact_map[name] != 'None':
                 bowling_style = exact_map[name]
@@ -356,7 +361,7 @@ class Command(BaseCommand):
             # Set explicit tactical roles for specific famous players
             if name in ['Virat Kohli', 'KL Rahul', 'Faf du Plessis', 'Kane Williamson', 'Shikhar Dhawan']:
                 tactical_role = 'Anchor'
-            elif name in ['Andre Russell', 'MS Dhoni', 'David Miller', 'Tim David', 'Shimron Hetmyer', 'Tristan Stubbs']:
+            elif name in ['Andre Russell', 'MS Dhoni', 'David Miller', 'Tim David', 'Shimron Hetmyer', 'Tristan Stubbs', 'Ashutosh Sharma', 'Shashank Singh', 'Suresh Raina', 'Kieron Pollard', 'Dasun Shanaka', 'Corbin Bosch']:
                 tactical_role = 'Finisher'
             elif name in ['Suryakumar Yadav', 'Travis Head', 'Heinrich Klaasen', 'Nicholas Pooran', 'Jake Fraser-McGurk']:
                 tactical_role = 'Power Hitter'
@@ -385,6 +390,9 @@ class Command(BaseCommand):
                 batting_power = 98 
                 batting_consistency = 95
                 tactical_role = 'Finisher'
+
+            if name == 'Jacob Bethell':
+                role = 'Batting All-rounder'
 
             return {
                 'name': name,
@@ -442,7 +450,8 @@ class Command(BaseCommand):
             ('Sai Sudharsan', 'Batsman'), ('Jasprit Bumrah', 'Bowler'), ('MS Dhoni', 'Batsman'),
             ('Chris Gayle', 'Batsman'), ('Hardik Pandya', 'All-rounder'),
             ('Axar Patel', 'All-rounder'), ('Trent Boult', 'Bowler'), ('Kuldeep Yadav', 'Bowler'),
-            ('Varun Chakravarthy', 'Bowler'), ('Josh Hazlewood', 'Bowler')
+            ('Varun Chakravarthy', 'Bowler'), ('Josh Hazlewood', 'Bowler'), ('Suresh Raina', 'Batsman'),
+            ('Lasith Malinga', 'Bowler'), ('Kieron Pollard', 'Batsman')
         ]
         for name, role in r_5:
             roster.append(generate_stats_for_tier(name, role, 5))
@@ -469,10 +478,15 @@ class Command(BaseCommand):
             ('Noor Ahmad', 'Bowler'), ('Ravi Bishnoi', 'Bowler'), ('Naveen-ul-Haq', 'Bowler'), ('Ayush Badoni', 'Batsman'),
             ('Mohsin Khan', 'Bowler'), ('Mohammed Siraj', 'Bowler'), ('Ben Stokes', 'All-rounder'),
             ('Mohammed Shami', 'Bowler'), ('T Natarajan', 'Bowler'), ('Harshal Patel', 'Bowler'),
-            ('Harshit Rana', 'Bowler')
+            ('Harshit Rana', 'Bowler'), ('Travis Head', 'Batsman'), ('Aiden Markram', 'Batsman'),
+            ('Shreyas Iyer', 'Batsman'), ('Heinrich Klaasen', 'Wicketkeeper'), ('Dale Steyn', 'Bowler'),
+            ('Lungi Ngidi', 'Bowler'), ('Yuvraj Singh', 'All-rounder'), ('Shakib Al Hasan', 'All-rounder'),
+            ('Ravichandran Ashwin', 'All-rounder'), ('Dinesh Karthik', 'Wicketkeeper'), 
+            ('Robin Uthappa', 'Wicketkeeper')
         ]
         for name, role in r_4:
-            roster.append(generate_stats_for_tier(name, role, 4))
+            stars = 3.5 if name == 'Robin Uthappa' else (3.5 if name == 'Lungi Ngidi' else 4)
+            roster.append(generate_stats_for_tier(name, role, stars))
 
         # ==========================================
         # ⭐⭐⭐ 3 STAR GOOD & BOWLERS
@@ -494,7 +508,19 @@ class Command(BaseCommand):
             ('Harpreet Brar', 'All-rounder'), ('Vidwath Kaverappa', 'Bowler'), ('Mohit Sharma', 'Bowler'),
             ('Yash Dayal', 'Bowler'), ('Darshan Nalkande', 'Bowler'), ('Spencer Johnson', 'Bowler'),
             ('Shahrukh Khan', 'Batsman'), ('Yash Thakur', 'Bowler'), ('Arshin Kulkarni', 'All-rounder'),
-            ('Ashton Turner', 'Batsman'), ('David Willey', 'All-rounder'), ('Prasidh Krishna', 'Bowler')
+            ('Ashton Turner', 'Batsman'), ('David Willey', 'All-rounder'), ('Prasidh Krishna', 'Bowler'),
+            ('Jacob Bethell', 'All-rounder'), ('Nehal Wadhera', 'Batsman'), ('Ashutosh Sharma', 'Batsman'),
+            ('Prithvi Shaw', 'Batsman'), ('Angkrish Raghuvanshi', 'Batsman'), ('Jonny Bairstow', 'Wicketkeeper'),
+            ('Vaibhav Suryavanshi', 'Batsman'), ('Ayush Mhatre', 'Batsman'), ('Shashank Singh', 'Batsman'),
+            ('Mayank Yadav', 'Bowler'), ('Umran Malik', 'Bowler'), ('Ishant Sharma', 'Bowler'),
+            ('Matt Henry', 'Bowler'), ('Mujeeb Ur Rahman', 'Bowler'), ('Amit Mishra', 'Bowler'),
+            ('Azmatullah Omarzai', 'All-rounder'), ('Michael Bracewell', 'All-rounder'),
+            ('Jimmy Neesham', 'All-rounder'), ('Dasun Shanaka', 'All-rounder'),
+            ('Mohammad Nabi', 'All-rounder'), ('Chris Woakes', 'All-rounder'),
+            ('Nitish Kumar Reddy', 'All-rounder'), ('Wriddhiman Saha', 'Wicketkeeper'),
+            ('Dhruv Jurel', 'Wicketkeeper'), ('Phil Salt', 'Wicketkeeper'),
+            ('Parthiv Patel', 'Wicketkeeper'), ('Finn Allen', 'Wicketkeeper'),
+            ('Tim Seifert', 'Wicketkeeper')
         ]
         for name, role in r_3:
             roster.append(generate_stats_for_tier(name, role, 3))
@@ -515,7 +541,11 @@ class Command(BaseCommand):
             ('Rasikh Salam', 'Bowler'), ('Shams Mulani', 'All-rounder'), ('Kartik Tyagi', 'Bowler'),
             ('Rajvardhan Hangargekar', 'All-rounder'), ('Mukesh Choudhary', 'Bowler'), ('Prashant Solanki', 'Bowler'),
             ('Ajay Mandal', 'All-rounder'), ('Naman Dhir', 'All-rounder'), ('Pravin Dubey', 'All-rounder'),
-            ('Sumit Kumar', 'All-rounder'), ('Kunal Rathore', 'Wicketkeeper'), ('Tanush Kotian', 'All-rounder')
+            ('Sumit Kumar', 'All-rounder'), ('Kunal Rathore', 'Wicketkeeper'), ('Tanush Kotian', 'All-rounder'),
+            ('Rahmanullah Gurbaz', 'Wicketkeeper'), ('Tom Latham', 'Wicketkeeper'), ('Pathum Nissanka', 'Wicketkeeper'),
+            ('Priyansh Arya', 'Batsman'), ('Anshul Kamboj', 'Bowler'), ('Keshav Maharaj', 'Bowler'),
+            ('Akeal Hosein', 'All-rounder'), ('Jayant Yadav', 'All-rounder'), ('Tom Curran', 'All-rounder'),
+            ('Corbin Bosch', 'All-rounder'), ('Chris Jordan', 'All-rounder')
         ]
         for name, role in r_2:
             roster.append(generate_stats_for_tier(name, role, 2))
@@ -528,7 +558,7 @@ class Command(BaseCommand):
             ('Sarfaraz Khan', 'Batsman'), ('Manish Pandey', 'Batsman'), ('Karun Nair', 'Batsman'),
             ('Jason Holder', 'All-rounder'), ('Odean Smith', 'All-rounder'), ('Daniel Sams', 'All-rounder'), 
             ('Fabian Allen', 'All-rounder'), ('Shivam Mavi', 'Bowler'), ('Kamlesh Nagarkoti', 'Bowler'), 
-            ('Riley Meredith', 'Bowler')
+            ('Riley Meredith', 'Bowler'), ('Yash Dhull', 'Batsman')
         ]
         for name, role in r_1:
             roster.append(generate_stats_for_tier(name, role, 1))
